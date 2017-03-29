@@ -1,5 +1,8 @@
 package pl.com.pablos.vertx.example;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +19,15 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class WelcomeTest {
 
 	private Vertx vertx;
-	private int port = 8081;
+	private Integer port;
 
 	@Before
-	public void setUp(TestContext context) {
+	public void setUp(TestContext context) throws IOException {
 		vertx = Vertx.vertx();
+
+		ServerSocket socket = new ServerSocket(0);
+		port = socket.getLocalPort();
+		socket.close();
 
 		// Use Deployment option to set port
 		DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put("http.port", port));
@@ -34,7 +41,7 @@ public class WelcomeTest {
 	}
 
 	@Test
-	public void testMyApp(TestContext context) {
+	public void testMyApp(TestContext context) { 
 		final Async async = context.async();
 
 		vertx.createHttpClient().getNow(port, "localhost", "/", response -> {
