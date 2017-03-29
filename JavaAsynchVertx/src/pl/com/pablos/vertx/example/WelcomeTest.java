@@ -5,7 +5,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -14,11 +16,16 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 public class WelcomeTest {
 
 	private Vertx vertx;
+	private int port = 8081;
 
 	@Before
 	public void setUp(TestContext context) {
 		vertx = Vertx.vertx();
-		vertx.deployVerticle(Welcome.class.getName(), context.asyncAssertSuccess());
+
+		// Use Deployment option to set port
+		DeploymentOptions options = new DeploymentOptions().setConfig(new JsonObject().put("http.port", port));
+
+		vertx.deployVerticle(Welcome.class.getName(), options, context.asyncAssertSuccess());
 	}
 
 	@After
@@ -30,11 +37,11 @@ public class WelcomeTest {
 	public void testMyApp(TestContext context) {
 		final Async async = context.async();
 
-		vertx.createHttpClient().getNow(8080, "localhost", "/", response -> {
+		vertx.createHttpClient().getNow(port, "localhost", "/", response -> {
 			response.handler(body -> {
 				context.assertTrue(body.toString().contains("Hello"));
+				async.complete();
 			});
-			async.complete();
 		});
 	}
 
